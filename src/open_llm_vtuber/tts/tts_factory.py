@@ -135,9 +135,18 @@ class TTSFactory:
             from .sherpa_onnx_tts import TTSEngine as SherpaOnnxTTSEngine
 
             return SherpaOnnxTTSEngine(**kwargs)
+        elif engine_type == "elevenlabs":
+            from .elevenlabs_tts import ElevenLabsTTSEngine
+
+            return ElevenLabsTTSEngine(
+                api_key=kwargs.get("api_key"),
+                voice_id=kwargs.get("voice_id"),
+                model_id=kwargs.get("model_id"),
+                output_format=kwargs.get("output_format"),
+            )        
         elif engine_type == "openai_tts":
             from .openai_tts import TTSEngine as OpenAITTSEngine
-
+   
             # Pass relevant config options, allowing defaults in openai_tts.py if not provided
             return OpenAITTSEngine(
                 model=kwargs.get("model"),  # Will use default "kokoro" if not in kwargs

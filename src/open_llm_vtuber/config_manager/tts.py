@@ -4,6 +4,32 @@ from typing import Literal, Optional, Dict, ClassVar
 from .i18n import I18nMixin, Description
 
 
+class ElevenLabsTTSConfig(I18nMixin):
+    api_key: str = Field(..., alias="api_key")
+    voice_id: str = Field(..., alias="voice_id")
+    model_id: str = Field("eleven_flash_v2_5", alias="model_id")
+    output_format: str = Field("mp3_44100_128", alias="output_format")
+
+    DESCRIPTIONS: ClassVar[Dict[str, Description]] = {
+        "api_key": Description(
+            en="ElevenLabs API key ",
+            zh="ElevenLabs API 密钥 ",
+        ),
+        "voice_id": Description(
+            en="Voice ID to use (required)",
+            zh="要使用的语音 ID (必填)",
+        ),
+        "model_id": Description(
+            en="Model ID to use (default: eleven_flash_v2_5)",
+            zh="要使用的模型 ID (默认: eleven_flash_v2_5)",
+        ),
+        "output_format": Description(
+            en="Audio output format (default: mp3_44100_128)",
+            zh="音频输出格式 (默认: mp3_44100_128)",
+        ),
+    }
+
+
 class AzureTTSConfig(I18nMixin):
     """Configuration for Azure TTS service."""
 
@@ -446,6 +472,7 @@ class TTSConfig(I18nMixin):
         "gpt_sovits_tts",
         "fish_api_tts",
         "sherpa_onnx_tts",
+        "elevenlabs",
         "siliconflow_tts",
         "openai_tts",  # Add openai_tts here
         "spark_tts",
@@ -465,6 +492,7 @@ class TTSConfig(I18nMixin):
     sherpa_onnx_tts: Optional[SherpaOnnxTTSConfig] = Field(
         None, alias="sherpa_onnx_tts"
     )
+    elevenlabs: Optional[ElevenLabsTTSConfig] = Field(None, alias="elevenlabs")
     siliconflow_tts: Optional[SiliconFlowTTSConfig] = Field(
         None, alias="siliconflow_tts"
     )
@@ -512,7 +540,7 @@ class TTSConfig(I18nMixin):
     @model_validator(mode="after")
     def check_tts_config(cls, values: "TTSConfig", info: ValidationInfo):
         tts_model = values.tts_model
-
+    
         # Only validate the selected TTS model
         if tts_model == "azure_tts" and values.azure_tts is not None:
             values.azure_tts.model_validate(values.azure_tts.model_dump())
@@ -536,6 +564,8 @@ class TTSConfig(I18nMixin):
             values.fish_api_tts.model_validate(values.fish_api_tts.model_dump())
         elif tts_model == "sherpa_onnx_tts" and values.sherpa_onnx_tts is not None:
             values.sherpa_onnx_tts.model_validate(values.sherpa_onnx_tts.model_dump())
+        elif tts_model == "elevenlabs" and values.elevenlabs is not None:
+            values.elevenlabs.model_validate(values.elevenlabs.model_dump())        
         elif tts_model == "siliconflow_tts" and values.siliconflow_tts is not None:
             values.siliconflow_tts.model_validate(values.siliconflow_tts.model_dump())
         elif tts_model == "openai_tts" and values.openai_tts is not None:
@@ -546,3 +576,10 @@ class TTSConfig(I18nMixin):
             values.minimax_tts.model_validate(values.minimax_tts.model_dump())
 
         return values
+
+
+# class ElevenLabsTTSEngine(TTSInterface):
+#     """
+#     Triển khai TTSInterface cho ElevenLabs sử dụng thư viện elevenlabs phiên bản mới
+#     """
+#     def __init__(self, api_key=None, voice_id=None, model_id=None, output_format="mp3_44100_128"):
